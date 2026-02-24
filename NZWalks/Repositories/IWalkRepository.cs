@@ -1,0 +1,15 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using NZWalks.Controllers.Models.Domain;
+using NZWalks.Controllers.Models.DTO;
+
+namespace NZWalks.Repositories
+{
+    public interface IWalkRepository
+    {
+        Task<Walk> Create(Walk walk);
+        Task<List<Walk>> Get();
+        Task<Walk> GetByID(Guid id);
+        Task<Walk> Update(Guid id,Walk walkDto);
+        Task<Walk> Delete(Guid id);
+    }
+}
