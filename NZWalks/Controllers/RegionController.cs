@@ -57,14 +57,21 @@ namespace NZWalks.Controllers
         {
             try
             {
-                //Convert of Region dto to domain
-                var reg = mapper.Map<Region>(region);
+                if (ModelState.IsValid)
+                {
+                    //Convert of Region dto to domain
+                    var reg = mapper.Map<Region>(region);
 
-                Region savedregion = await regionRepository.CreateRegion(reg);
+                    Region savedregion = await regionRepository.CreateRegion(reg);
 
-                //Map domain model to dto
-                var retValRegDto = mapper.Map<RegionDto>(savedregion);
-                return CreatedAtAction(nameof(CreateRegion), new { id = reg.Id }, retValRegDto);
+                    //Map domain model to dto
+                    var retValRegDto = mapper.Map<RegionDto>(savedregion);
+                    return CreatedAtAction(nameof(CreateRegion), new { id = reg.Id }, retValRegDto);
+                }
+                else
+                {
+                    return BadRequest();
+                }
 
             }
             catch (Exception ex)
@@ -77,8 +84,6 @@ namespace NZWalks.Controllers
         [Route("{id:guid}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] RegionUpdateRequestDto regionupdate)
         {
-
-           
             var regionconverter = mapper.Map<Region>(regionupdate);
             //save to Db
             var Existingregion = await regionRepository.Update(id, regionconverter);
