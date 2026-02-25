@@ -6,7 +6,7 @@ using NZWalks.Controllers.Models.DTO;
 using NZWalks.Data;
 using NZWalks.Mappings;
 using NZWalks.Repositories;
-
+using NZWalks.CustomActionFilter;
 namespace NZWalks.Controllers
 {
     [Route("api/[controller]")]
@@ -68,20 +68,13 @@ namespace NZWalks.Controllers
 
         [HttpPost]
         //[Route("{id:guid}")]
+        [ValidateModleAttribute]
         public async Task<IActionResult> Create([FromBody] WalkDto walkdto)
         {
-            if (ModelState.IsValid)
-            {
                 Walk walk = mapper.Map<Walk>(walkdto);
                 Walk addedWalk = await walkRepository.Create(walk);
                 walkdto = mapper.Map<WalkDto>(addedWalk);
                 return Ok(addedWalk);
-            }
-            else
-            {
-                return BadRequest(ModelState);
-            }
-            
         }
 
 

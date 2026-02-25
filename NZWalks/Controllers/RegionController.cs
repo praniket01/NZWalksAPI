@@ -7,6 +7,7 @@ using NZWalks.Controllers.Models.Domain;
 using NZWalks.Controllers.Models.DTO;
 using NZWalks.Data;
 using NZWalks.Repositories;
+using NZWalks.CustomActionFilter;
 
 namespace NZWalks.Controllers
 {
@@ -53,12 +54,12 @@ namespace NZWalks.Controllers
         }
 
         [HttpPost]
+        [ValidateModleAttribute]
         public async Task<IActionResult> CreateRegion([FromBody] RegionDto region)
         {
             try
             {
-                if (ModelState.IsValid)
-                {
+                
                     //Convert of Region dto to domain
                     var reg = mapper.Map<Region>(region);
 
@@ -67,11 +68,7 @@ namespace NZWalks.Controllers
                     //Map domain model to dto
                     var retValRegDto = mapper.Map<RegionDto>(savedregion);
                     return CreatedAtAction(nameof(CreateRegion), new { id = reg.Id }, retValRegDto);
-                }
-                else
-                {
-                    return BadRequest();
-                }
+             
 
             }
             catch (Exception ex)
