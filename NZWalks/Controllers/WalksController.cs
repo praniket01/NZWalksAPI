@@ -22,10 +22,14 @@ namespace NZWalks.Controllers
             this.walkRepository = walkRepository;
         }
 
+        //localhost:8000/api/walks?filterOn=Name&filterQuery=Track&sortBy=Name&isAscending=true&pageNumber=1&pageSize=100
         [HttpGet]
-        public async Task<List<WalkDto>> Get()
+        public async Task<List<WalkDto>> Get([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
+             [FromQuery] string? sortBy, [FromQuery] bool? isAscending,
+             [FromQuery] int? pageNumber, [FromQuery] int? pageSize)
         {
-            List<Walk> walks = await walkRepository.Get();
+
+            List<Walk> walks = await walkRepository.Get(filterOn, filterQuery, sortBy,isAscending,pageNumber,pageSize);
             List<WalkDto> walksdto = mapper.Map<List<WalkDto>>(walks);
             return walksdto;
         }

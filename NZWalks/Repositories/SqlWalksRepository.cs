@@ -46,10 +46,63 @@ namespace NZWalks.Repositories
             Walk walk = await dbContext.Walks.FindAsync(id);
             return walk;
         }
-        public async Task<List<Walk>> Get()
+        public async Task<List<Walk>> Get(string? filterOn =null,string? filterQuery=null,
+            string? sortBy=null,bool? isAscending=null,int? pageNumber =null,int? pageSize=null)
         {
-            List<Walk> walks = await dbContext.Walks.Include("Difficulty").Include("Region").ToListAsync();
-            return walks;
+            var walks =  dbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
+
+            //Filtering Data
+            if (string.IsNullOrWhiteSpace(filterOn) == false || string.IsNullOrWhiteSpace(filterQuery) == false)
+            {
+                if (filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await walks.Where(x => x.Name.Contains(filterQuery)).ToListAsync();
+                }
+                else if (filterOn.Equals("Description", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await walks.Where(x => x.Description.Contains(filterQuery)).ToListAsync();
+                }
+                else if (filterOn.Equals("Region", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await walks.Where(x => x.Region.Name.Contains(filterQuery)).ToListAsync();
+                }
+                else if (filterOn.Equals("Difficulty", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await walks.Where(x => x.Difficulty.Name.Contains(filterQuery)).ToListAsync();
+                }
+            }
+
+            //Sorting
+            if (string.IsNullOrWhiteSpace(sortBy) == false)
+            {
+                if (sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = isAscending == true ? walks.OrderBy(x => x.Name) : walks.OrderByDescending(x => x.Name);
+                }
+                else if (sortBy.Equals("Length", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = isAscending == true ? walks.OrderBy(x => x.Length) : walks.OrderByDescending(x => x.Length);
+                }
+                else if (sortBy.Equals("Difficulty", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = isAscending == true ? walks.OrderBy(x => x.Difficulty.Name) : walks.OrderByDescending(x => x.Difficulty.Name);
+                }
+                else if (sortBy.Equals("Region", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = isAscending == true ? walks.OrderBy(x => x.Region.Name) : walks.OrderByDescending(x => x.Region.Name);
+
+                }
+            }
+
+            //pagination
+            if(pageNumber != null && pageSize != null)
+            {
+                int skipResults = ((int)pageNumber - 1) * (int)pageSize;
+                walks = walks.Skip(skipResults).Take((int)pageSize);
+            }
+            //List<Walk> walks = await dbContext.Walks.Include("Difficulty").Include("Region").ToListAsync();
+
+            return await walks.ToListAsync();
         }
 
         public async Task<Walk> Create(Walk walk)
