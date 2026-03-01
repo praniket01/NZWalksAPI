@@ -8,12 +8,14 @@ using NZWalks.Controllers.Models.DTO;
 using NZWalks.Data;
 using NZWalks.Repositories;
 using NZWalks.CustomActionFilter;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NZWalks.Controllers
 {
     //attribute
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RegionController : ControllerBase
     {
         private readonly IRegionRepository regionRepository;

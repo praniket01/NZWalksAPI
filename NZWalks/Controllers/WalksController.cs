@@ -7,10 +7,12 @@ using NZWalks.Data;
 using NZWalks.Mappings;
 using NZWalks.Repositories;
 using NZWalks.CustomActionFilter;
+using Microsoft.AspNetCore.Authorization;
 namespace NZWalks.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class WalksController : ControllerBase
     {
         private readonly IWalkRepository walkRepository;
