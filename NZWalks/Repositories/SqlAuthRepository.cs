@@ -1,41 +1,41 @@
-﻿using Microsoft.AspNetCore.Identity;
-using NZWalks.Controllers.Models.Domain;
-using NZWalks.Controllers.Models.DTO;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+
 namespace NZWalks.Repositories
 {
     public class SqlAuthRepository : IAuthRepository
     {
-        private readonly Microsoft.AspNetCore.Identity.UserManager<IdentityUser> userManager;
-
-        public SqlAuthRepository(Microsoft.AspNetCore.Identity.UserManager<IdentityUser> usermanager)
+        private readonly IConfiguration configuration;
+        public SqlAuthRepository(IConfiguration configuration)
         {
-            this.userManager = userManager;
+            this.configuration = configuration;
         }
-
-        public async Task<IActionResult> Register(AuthDTO registerDto)
+        public string CreateJwtToken(IdentityUser user, List<string> roles)
         {
-            var identyUser = new IdentityUser()
+            var claims = new List<Claim>();
+
+            claims.Add(new Claim(ClaimTypes.Email, user.Email));
+
+            foreach(var role in roles)
             {
-                UserName = registerDto.UserName,
-                Email = registerDto.UserName
-            };
-
-            var identityResult = await userManager.CreateAsync(identyUser, registerDto.Password);
-
-            if (identityResult.Succeeded)
-            {
-                identityResult = await userManager.AddToRolesAsync(identyUser, registerDto.Roles);
-
-                if (identityResult.Succeeded)
-                {
-                    return new OkObjectResult("User was registered! Please login");
-                }
+                claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            return new BadRequestObjectResult("Something went worng");
-        }
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["jwt:Key"]));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            var token = new JwtSecurityToken(
+                configuration["jwt:Issuer"],
+                configuration["jwt:Audience"],
+                claims,
+                expires : DateTime.Now.AddMinutes(15),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
 }

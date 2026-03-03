@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NZWalks.Controllers.Models.DTO;
 using NZWalks.Repositories;
@@ -9,10 +11,13 @@ namespace NZWalks.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        IAuthRepository authRepository;
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly IAuthRepository authRepository;
+
         
-        public AuthController(IAuthRepository authRepository)
+        public AuthController(UserManager<IdentityUser> userManager, IAuthRepository authRepository)
         {
+            this.userManager = userManager;
             this.authRepository = authRepository;
         }
 
@@ -20,14 +25,59 @@ namespace NZWalks.Controllers
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] AuthDTO registerDto)
         {
-            AuthDTO authDTO = new AuthDTO()
+            var identityUSer = new IdentityUser()
             {
                 UserName = registerDto.UserName,
-                Password = registerDto.Password,
-                Roles = registerDto.Roles
+                Email = registerDto.UserName
             };
-            return await authRepository.Register(authDTO);
+           
+            var identityResult = await userManager.CreateAsync(identityUSer, registerDto.Password);
+
+            if (identityResult.Succeeded)
+            {
+                if(registerDto.Roles != null || registerDto.Roles.Length != 0)
+                {
+                    identityResult = await userManager.AddToRolesAsync(identityUSer, registerDto.Roles);
+                    if (identityResult.Succeeded)
+                    {
+                        return new OkObjectResult("User was registered! Please login");
+                    }
+                }
+                
+            }
+            return new BadRequestObjectResult("User registration failed! Please try again");
+        }
+
+        [HttpPost]
+        [Route("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginRequest)
+        {
+            if(loginRequest.username == null || loginRequest.password == null)
+            {
+                return BadRequest("Please enter credentials");
+            }
+            var checkUserPresent = await userManager.FindByEmailAsync(loginRequest.username);
             
+            if(checkUserPresent != null)
+            {
+                var isPasswordCorrect = await userManager.CheckPasswordAsync(checkUserPresent, loginRequest.password);
+                
+                var roles = await userManager.GetRolesAsync(checkUserPresent);
+    
+                if (isPasswordCorrect != null && roles != null)
+                {
+                    string jwt = authRepository.CreateJwtToken(checkUserPresent, roles.ToList());
+
+                    LoginResponseDto loginResponseDto = new LoginResponseDto()
+                    {
+                        jwt = jwt
+                    };
+
+                    return Ok(loginResponseDto);
+                }
+            }
+
+            return BadRequest("Please enter correct credentials");
         }
     }
 }

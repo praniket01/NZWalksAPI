@@ -12,7 +12,7 @@ namespace NZWalks.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    
     public class WalksController : ControllerBase
     {
         private readonly IWalkRepository walkRepository;
@@ -26,6 +26,8 @@ namespace NZWalks.Controllers
 
         //localhost:8000/api/walks?filterOn=Name&filterQuery=Track&sortBy=Name&isAscending=true&pageNumber=1&pageSize=100
         [HttpGet]
+        [Authorize(Roles = "reader")]
+        [Authorize(Roles = "writer")]
         public async Task<List<WalkDto>> Get([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
              [FromQuery] string? sortBy, [FromQuery] bool? isAscending,
              [FromQuery] int? pageNumber, [FromQuery] int? pageSize)
@@ -38,6 +40,7 @@ namespace NZWalks.Controllers
 
         [HttpDelete]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> Delete([FromBody] Guid id)
         {
             var deleteWalk = await walkRepository.Delete(id);
@@ -47,6 +50,7 @@ namespace NZWalks.Controllers
         
         [HttpPut]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
         public async Task<WalkDto> Update([FromRoute] Guid id, [FromBody] WalkDto walkDto)
         {
             if (ModelState.IsValid)
@@ -64,6 +68,8 @@ namespace NZWalks.Controllers
 
         [HttpGet]
         [Route("{id:guid}")]
+        [Authorize(Roles = "reader")]
+        [Authorize(Roles = "writer")]
         public async Task<WalkDto> GetById([FromBody] Guid id)
         {
             Walk walk = await walkRepository.GetByID(id);
@@ -75,6 +81,7 @@ namespace NZWalks.Controllers
         [HttpPost]
         //[Route("{id:guid}")]
         [ValidateModleAttribute]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> Create([FromBody] WalkDto walkdto)
         {
                 Walk walk = mapper.Map<Walk>(walkdto);
