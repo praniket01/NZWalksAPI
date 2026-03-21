@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using NZWalks.Data;
 using NZWalks.Mappings;
 using NZWalks.Repositories;
+using NZWalks.Controllers.Models.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,9 +48,9 @@ builder.Services.AddScoped<IImageRepository, SqlImageRepository>();
 
 builder.Services.AddAutoMapper(typeof(RegionMappings));
 
-builder.Services.AddIdentityCore<IdentityUser>()
+builder.Services.AddIdentityCore<ApplicationUser>()
     .AddRoles<IdentityRole>()
-    .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("NZWalks").
+    .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("NZWalks").
     AddEntityFrameworkStores<AuthorizationDBContext>().
     AddDefaultTokenProviders();
 

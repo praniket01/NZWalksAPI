@@ -69,10 +69,12 @@ namespace NZWalks.Controllers
                 if (isPasswordCorrect && roles != null)
                 {
                     string jwt = authRepository.CreateJwtToken(checkUserPresent, roles.ToList());
+                    string name = checkUserPresent.Name;
 
                     LoginResponseDto loginResponseDto = new LoginResponseDto()
                     {
-                        jwt = jwt
+                        jwt = jwt,
+                        name = name
                     };
 
                     return Ok(loginResponseDto);
