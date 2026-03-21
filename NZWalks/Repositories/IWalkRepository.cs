@@ -11,5 +11,7 @@ namespace NZWalks.Repositories
         Task<Walk> GetByID(Guid id);
         Task<Walk> Update(Guid id,Walk walkDto);
         Task<Walk> Delete(Guid id);
+
+        Task<IActionResult> SeedWalkDescriptions();
     }
 }

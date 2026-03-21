@@ -89,5 +89,12 @@ namespace NZWalks.Controllers
         }
 
 
+        [HttpPost]
+        [Route("seed-descriptions")]
+        public async Task<IActionResult> SeedDescriptions()
+        {
+            await walkRepository.SeedWalkDescriptions();
+            return Ok("Descriptions seeded successfully!");
+        }
     }
 }
