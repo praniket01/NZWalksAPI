@@ -27,8 +27,7 @@ namespace NZWalks.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "reader")]
-        [Authorize(Roles = "writer")]
+        [Authorize(Roles = "reader,writer")]
         public async Task<IActionResult> GetRegion()
         {
             var regions = await regionRepository.GetRegion();
@@ -42,8 +41,7 @@ namespace NZWalks.Controllers
 
         [HttpGet]
         [Route("{id:guid}")]
-        [Authorize(Roles = "reader")]
-        [Authorize(Roles = "writer")]
+        [Authorize(Roles = "reader,writer")]
         public async Task<IActionResult> GetRegionByID([FromRoute] Guid id)
         {
             // Extraction from domain layer

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using NZWalks.Controllers.Models.Domain;
 using NZWalks.Controllers.Models.DTO;
 using NZWalks.Repositories;
 
@@ -11,11 +12,11 @@ namespace NZWalks.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> userManager;
+        private readonly UserManager<ApplicationUser> userManager;
         private readonly IAuthRepository authRepository;
 
         
-        public AuthController(UserManager<IdentityUser> userManager, IAuthRepository authRepository)
+        public AuthController(UserManager<ApplicationUser> userManager, IAuthRepository authRepository)
         {
             this.userManager = userManager;
             this.authRepository = authRepository;
@@ -25,10 +26,11 @@ namespace NZWalks.Controllers
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] AuthDTO registerDto)
         {
-            var identityUSer = new IdentityUser()
+            var identityUSer = new ApplicationUser()
             {
                 UserName = registerDto.UserName,
-                Email = registerDto.UserName
+                Email = registerDto.UserName,
+                Name = registerDto.Name
             };
            
             var identityResult = await userManager.CreateAsync(identityUSer, registerDto.Password);
@@ -45,7 +47,7 @@ namespace NZWalks.Controllers
                 }
                 
             }
-            return new BadRequestObjectResult("User registration failed! Please try again");
+            return new BadRequestObjectResult(identityResult.Errors.ToList().FirstOrDefault().Description);
         }
 
         [HttpPost]
@@ -64,7 +66,7 @@ namespace NZWalks.Controllers
                 
                 var roles = await userManager.GetRolesAsync(checkUserPresent);
     
-                if (isPasswordCorrect != null && roles != null)
+                if (isPasswordCorrect && roles != null)
                 {
                     string jwt = authRepository.CreateJwtToken(checkUserPresent, roles.ToList());
 

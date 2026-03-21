@@ -26,8 +26,7 @@ namespace NZWalks.Controllers
 
         //localhost:8000/api/walks?filterOn=Name&filterQuery=Track&sortBy=Name&isAscending=true&pageNumber=1&pageSize=100
         [HttpGet]
-        [Authorize(Roles = "reader")]
-        [Authorize(Roles = "writer")]
+        [Authorize(Roles = "reader,writer")]
         public async Task<List<WalkDto>> Get([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
              [FromQuery] string? sortBy, [FromQuery] bool? isAscending,
              [FromQuery] int? pageNumber, [FromQuery] int? pageSize)
@@ -68,8 +67,7 @@ namespace NZWalks.Controllers
 
         [HttpGet]
         [Route("{id:guid}")]
-        [Authorize(Roles = "reader")]
-        [Authorize(Roles = "writer")]
+        [Authorize(Roles = "reader,writer")]
         public async Task<WalkDto> GetById([FromBody] Guid id)
         {
             Walk walk = await walkRepository.GetByID(id);

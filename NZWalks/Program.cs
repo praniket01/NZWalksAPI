@@ -15,6 +15,21 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy =>
+        {
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+
+
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddDbContext<NZWalksDBContext>((options) =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("NZWalks"));
@@ -28,6 +43,7 @@ builder.Services.AddDbContext<AuthorizationDBContext>((options) =>
 builder.Services.AddScoped<IRegionRepository, SqlRegionRepository>();
 builder.Services.AddScoped<IWalkRepository, SqlWalksRepository>();
 builder.Services.AddScoped<IAuthRepository, SqlAuthRepository>();
+builder.Services.AddScoped<IImageRepository, SqlImageRepository>();
 
 builder.Services.AddAutoMapper(typeof(RegionMappings));
 
@@ -71,6 +87,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowReactApp");
 
 app.UseAuthentication();
 

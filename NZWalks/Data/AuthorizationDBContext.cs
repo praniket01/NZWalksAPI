@@ -1,16 +1,17 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using NZWalks.Controllers.Models.Domain;
 
 namespace NZWalks.Data
 {
-    public class AuthorizationDBContext : IdentityDbContext<IdentityUser>
+    public class AuthorizationDBContext : IdentityDbContext<ApplicationUser>
     {
         public AuthorizationDBContext(DbContextOptions<AuthorizationDBContext> options) : base(options)
         {
             
         }
-
+            
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
