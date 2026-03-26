@@ -10,10 +10,12 @@ namespace NZWalks.Repositories
     public class SqlWalksRepository : IWalkRepository
     {
         private readonly NZWalksDBContext dbContext;
+        private readonly AuthorizationDBContext authorizationDBContext;
 
-        public SqlWalksRepository(NZWalksDBContext dBContext)
+        public SqlWalksRepository(NZWalksDBContext dBContext,AuthorizationDBContext authorizationDBContext)
         {
             this.dbContext = dBContext;
+            this.authorizationDBContext = authorizationDBContext;
         }
 
         public async Task<Walk> Delete(Guid id)
@@ -99,9 +101,21 @@ namespace NZWalks.Repositories
 
         }
 
+        public async Task<List<Walk>> Search(string query)
+        {
+             var walks = await dbContext.Walks
+                .Include(x => x.Region)
+                .Include(x => x.Difficulty)
+                .Where(x => x.Name.Contains(query))
+                .Take(5) 
+                .ToListAsync();
+
+            return walks;
+        }
+
         public async Task<Walk> GetByID(Guid id)
         {
-            Walk walk = await dbContext.Walks.FindAsync(id);
+            Walk walk = await dbContext.Walks.Include(x => x.Region).Include(x => x.Difficulty).FirstOrDefaultAsync(x=> x.Id == id);
             return walk;
         }
         public async Task<List<Walk>> Get(
@@ -183,5 +197,59 @@ namespace NZWalks.Repositories
             await dbContext.SaveChangesAsync();
             return walk;
         }
+
+        public async Task<IActionResult> SaveWalk(Guid Walkid,string userId)
+        {
+            //var user = authorizationDBContext.Users.FirstOrDefaultAsync(x => x.UserName == username);
+
+            var exists = await dbContext.UserSavedWalks
+                .AnyAsync(x => x.UserId == userId && x.WalkId == Walkid);
+
+            if (exists)
+                return new  OkObjectResult("Already saved");
+
+            var saved = new UserSavedWalk
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                WalkId = Walkid
+            };
+
+            await dbContext.UserSavedWalks.AddAsync(saved);
+            await dbContext.SaveChangesAsync();
+
+            return new OkResult();
+
+        }
+        public async Task<IActionResult> UnsaveWalk(string userId, Guid walkId)
+        {
+            var exists = await dbContext.UserSavedWalks
+                 .FirstOrDefaultAsync(x => x.UserId == userId && x.WalkId == walkId);
+
+            if (exists == null)
+                return new OkObjectResult("Walk Not present");
+
+            dbContext.UserSavedWalks.Remove(exists);
+            await dbContext.SaveChangesAsync();
+            return new OkResult();
+        }
+
+        public async Task<IActionResult> GetSavedWalks(string userId)
+        {
+            if (userId == null) return new BadRequestResult();
+
+            var savedWalks = await dbContext.UserSavedWalks
+                .Where(x => x.UserId == userId)
+                .Include(x => x.Walk)
+                .ThenInclude(w => w.Region)
+                .Include(x => x.Walk)
+                .ThenInclude(x => x.Difficulty)
+                .ToListAsync();
+
+            var walks = savedWalks.Select(x => x.Walk).ToList();
+
+            return new OkObjectResult(walks);
+        }
+
     }
 }

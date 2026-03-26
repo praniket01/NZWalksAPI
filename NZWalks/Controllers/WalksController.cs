@@ -8,6 +8,8 @@ using NZWalks.Mappings;
 using NZWalks.Repositories;
 using NZWalks.CustomActionFilter;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using NZWalks.Controllers.Models;
 namespace NZWalks.Controllers
 {
     [Route("api/[controller]")]
@@ -68,12 +70,27 @@ namespace NZWalks.Controllers
         [HttpGet]
         [Route("{id:guid}")]
         [Authorize(Roles = "reader,writer")]
-        public async Task<WalkDto> GetById([FromBody] Guid id)
+        public async Task<WalkDto> GetById([FromRoute] Guid id)
         {
             Walk walk = await walkRepository.GetByID(id);
             if (walk == null) return null;
             WalkDto returnWalkDto = mapper.Map < WalkDto >(walk);
             return returnWalkDto;
+        }
+
+        [HttpPost]
+        [Route("search")]
+        public async Task<List<Walk>> Search([FromBody] SearchDTO incomingQuery)
+        {
+            string query = incomingQuery.searchQuery;
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return null;
+            }
+
+            var walks = await walkRepository.Search(query);
+
+            return walks;
         }
 
         [HttpPost]
@@ -88,13 +105,42 @@ namespace NZWalks.Controllers
                 return Ok(addedWalk);
         }
 
-
         [HttpPost]
         [Route("seed-descriptions")]
         public async Task<IActionResult> SeedDescriptions()
         {
             await walkRepository.SeedWalkDescriptions();
             return Ok("Descriptions seeded successfully!");
+        }
+
+        [HttpPost]
+        [Route("save/{Walkid:guid}")]
+        [Authorize]
+        public async Task<IActionResult> SaveWalk(Guid Walkid)
+        {
+            var userId = User.FindFirst("id")?.Value;
+            var savedWalk = await walkRepository.SaveWalk(Walkid,userId);
+            return savedWalk;
+        }
+
+        [HttpDelete]
+        [Route("unsave/{walkId:guid}")]
+        [Authorize]
+        public async Task<IActionResult> UnsaveWalk(Guid walkId)
+        {
+            var userId = User.FindFirst("id")?.Value;
+            var unsavedWalk = await walkRepository.UnsaveWalk(userId,walkId);
+            return unsavedWalk;
+        }
+
+        [HttpGet]
+        [Route("saved")]
+        [Authorize]
+        public async Task<IActionResult> GetSavedWalks()
+        {
+            var userId = User.FindFirst("id")?.Value;
+            var savedWalks = await walkRepository.GetSavedWalks(userId);
+            return Ok(savedWalks);
         }
     }
 }

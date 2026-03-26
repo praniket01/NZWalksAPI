@@ -18,8 +18,10 @@ namespace NZWalks.Repositories
             var claims = new List<Claim>();
 
             claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            claims.Add(new Claim(ClaimTypes.Name, user.UserName));
+            claims.Add(new Claim("id", user.Id));
 
-            foreach(var role in roles)
+            foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
@@ -30,7 +32,7 @@ namespace NZWalks.Repositories
             var token = new JwtSecurityToken(
                 configuration["jwt:Issuer"],
                 configuration["jwt:Audience"],
-                claims,
+                claims:claims,
                 expires : DateTime.Now.AddMinutes(15),
                 signingCredentials: credentials
             );

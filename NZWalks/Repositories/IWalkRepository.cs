@@ -11,7 +11,10 @@ namespace NZWalks.Repositories
         Task<Walk> GetByID(Guid id);
         Task<Walk> Update(Guid id,Walk walkDto);
         Task<Walk> Delete(Guid id);
-
+        Task<List<Walk>> Search(string query);
         Task<IActionResult> SeedWalkDescriptions();
+        Task<IActionResult> SaveWalk(Guid Walkid,string username);
+        Task<IActionResult> UnsaveWalk(string userId,Guid walkId);
+        Task<IActionResult> GetSavedWalks(string username);
     }
 }
